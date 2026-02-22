@@ -120,7 +120,7 @@ ParkSight is a comprehensive parking detection system built for a 36-hour hackat
 1. TRAINING PHASE
    ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
    │ ParkSeg12k   │─────▶│ DeepLabV3+   │─────▶│ Trained Model│
-   │ Dataset      │      │ Training     │      │ (70.7% IoU)  │
+   │ Dataset      │      │ Training     │      │ (78.1% IoU)  │
    │ (12,617 imgs)│      │ (5 epochs)   │      │              │
    └──────────────┘      └──────────────┘      └──────────────┘
 
