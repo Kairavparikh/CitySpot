@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CitySpot - Atlanta Parking Detection</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Leaflet Heatmap Plugin -->
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <!-- Header -->
+            <div class="header">
+                <div class="logo">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Pin outline -->
+                        <path d="M14 2C9.58 2 6 5.58 6 10c0 6.5 8 16 8 16s8-9.5 8-16c0-4.42-3.58-8-8-8z" fill="#1A73E8" opacity="0.15" stroke="#1A73E8" stroke-width="1.5"/>
+                        <!-- City grid inside pin -->
+                        <rect x="10" y="7" width="2.5" height="3.5" rx="0.4" fill="#1A73E8"/>
+                        <rect x="13.5" y="8.5" width="2.5" height="2" rx="0.4" fill="#4FC3F7"/>
+                        <rect x="10" y="11.5" width="2.5" height="2" rx="0.4" fill="#4FC3F7"/>
+                        <rect x="13.5" y="11.5" width="2.5" height="2" rx="0.4" fill="#1A73E8"/>
+                        <!-- Pin tip dot -->
+                        <circle cx="14" cy="22" r="1.2" fill="#1A73E8" opacity="0.6"/>
+                    </svg>
+                    <span class="logo-text"><span class="logo-park">City</span><span class="logo-sight">Spot</span></span>
+                </div>
+                <div class="region-badge">ATL</div>
+            </div>
+
+            <!-- View Toggle -->
+            <div class="view-toggle-container">
+                <button class="view-toggle-btn active" data-view="map">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    Map
+                </button>
+<button class="view-toggle-btn" data-view="polygons">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5"/>
+                    </svg>
+                    Polygons
+                </button>
+                <button class="view-toggle-btn" data-view="analytics">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="20" x2="12" y2="10"/>
+                        <line x1="18" y1="20" x2="18" y2="4"/>
+                        <line x1="6" y1="20" x2="6" y2="16"/>
+                    </svg>
+                    Analytics
+                </button>
+            </div>
+
+            <!-- Aggregate Stats -->
+            <section class="stats-section">
+                <div class="stats-title-row">
+                    <h3 class="section-title" style="margin-bottom:0">AGGREGATE STATS</h3>
+                    <div id="stats-location-badge" class="stats-location-badge" style="display:none;">
+                        <span>📍</span>
+                        <span id="stats-location-name"></span>
+                        <button class="stats-reset-btn" onclick="resetStatsToGlobal()">✕</button>
+                    </div>
+                </div>
+
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">LOTS DETECTED</div>
+                            <div class="stat-value" id="lots-count">-</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"/>
+                                <rect x="14" y="3" width="7" height="7"/>
+                                <rect x="14" y="14" width="7" height="7"/>
+                                <rect x="3" y="14" width="7" height="7"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">EST. SPOTS</div>
+                            <div class="stat-value" id="spots-count">-</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">COVERAGE</div>
+                            <div class="stat-value" id="coverage-area">-</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                            </svg>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-label">AVG LOT SIZE</div>
+                            <div class="stat-value" id="avg-lot-size">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Confidence Meters -->
+                <div class="confidence-section">
+                    <div class="confidence-header">
+                        <span class="confidence-label">URBAN AREA CONFIDENCE</span>
+                        <span class="confidence-value" id="avg-confidence">-%</span>
+                    </div>
+                    <div class="confidence-bar-container">
+                        <div class="confidence-bar" id="confidence-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="confidence-section" style="margin-top: 10px;">
+                    <div class="confidence-header">
+                        <span class="confidence-label">SUBURBAN AREA CONFIDENCE</span>
+                        <span class="confidence-value">82%</span>
+                    </div>
+                    <div class="confidence-bar-container">
+                        <div class="confidence-bar" style="width: 82%"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Filters -->
+            <section class="filters-section">
+                <h3 class="section-title">FILTERS</h3>
+
+                <!-- Garage Level Filter -->
+                <div class="filter-group">
+                    <div class="filter-label">GARAGE FLOORS (purple P)</div>
+                    <div class="size-buttons">
+                        <button class="size-btn active" data-size="small">
+                            <span class="size-indicator" style="background: #4ECDC4"></span>
+                            Parking Lot<br><span class="size-desc">1–3 floors</span>
+                        </button>
+                        <button class="size-btn active" data-size="medium">
+                            <span class="size-indicator" style="background: #FFB84D"></span>
+                            Parking Garage<br><span class="size-desc">4–7 floors</span>
+                        </button>
+                        <button class="size-btn active" data-size="large">
+                            <span class="size-indicator" style="background: #E74C3C"></span>
+                            Parking Building<br><span class="size-desc">8+ floors</span>
+                        </button>
+                    </div>
+                </div>
+
+
+                <!-- Confidence Filter -->
+                <div class="filter-group">
+                    <div class="filter-label">
+                        MIN CONFIDENCE
+                        <span class="confidence-slider-value" id="min-confidence-value">0%</span>
+                    </div>
+                    <input type="range" class="confidence-slider" id="min-confidence" min="0" max="100" value="0">
+                </div>
+
+            </section>
+        </aside>
+
+        <!-- Map Container -->
+        <main class="map-container">
+            <!-- Search bar above map -->
+            <div class="map-search-bar">
+                <div class="search-container">
+                    <div class="search-input-wrap">
+                        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        </svg>
+                        <input type="text" id="search" class="search-input" placeholder="Search neighborhoods...">
+                    </div>
+                    <div id="neighborhood-dropdown" class="neighborhood-dropdown" style="display:none;"></div>
+                </div>
+            </div>
+
+            <div id="map"></div>
+
+            <!-- Model editing toolbar (only visible in Model view) -->
+            <div id="model-toolbar" class="model-toolbar" style="display:none;">
+                <span class="model-toolbar-label">✏️ Edit Mode</span>
+                <span id="model-removed-count" class="model-removed-count">0 removed</span>
+                <button id="model-undo-btn" class="model-toolbar-btn" onclick="undoLastRemoval()" disabled>↩ Undo</button>
+                <button class="model-toolbar-btn model-export-btn" onclick="exportCleanedGeoJSON()">💾 Save GeoJSON</button>
+            </div>
+
+            <!-- Analytics Dashboard (hidden by default) -->
+            <div id="analytics-dashboard" class="analytics-dashboard" style="display: none;">
+                <div class="analytics-header">
+                    <h2>Parking Garage Analytics</h2>
+                    <p>Breakdown of all parking garages on the map</p>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>Neighborhood Parking Density</h3>
+                        <canvas id="neighborhoodChart"></canvas>
+                    </div>
+
+                    <div class="chart-card">
+                        <h3>Model Confidence Distribution</h3>
+                        <canvas id="confidenceChart"></canvas>
+                    </div>
+
+                    <div class="chart-card">
+                        <h3>Detected Lot Size Breakdown</h3>
+                        <canvas id="sizeChart"></canvas>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Business Advisor Chatbot -->
+    <button class="chatbot-toggle" id="chatbot-toggle">
+        <span class="chatbot-icon">💼</span>
+        <span class="chatbot-label">Business Advisor</span>
+    </button>
+
+    <div class="chatbot-panel" id="chatbot-panel">
+        <div class="chatbot-header">
+            <div class="chatbot-title">
+                <span style="font-size: 18px;">🎯</span>
+                <span>Atlanta Business Advisor</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="chatbot-close" id="chatbot-clear" style="background: #3498DB; font-size: 14px; padding: 4px 12px;" title="Clear chat">🗑️</button>
+                <button class="chatbot-close" id="chatbot-close">✕</button>
+            </div>
+        </div>
+
+        <div class="chatbot-messages" id="chatbot-messages">
+            <div class="chatbot-message ai-message">
+                <div class="message-avatar">AI</div>
+                <div class="message-content">
+                    Hi! I'm your Atlanta retail site advisor. Tell me what kind of business you want to open and I'll find the best spots based on parking data and neighborhood intelligence.
+                </div>
+            </div>
+        </div>
+
+        <div class="chatbot-suggestions">
+            <button class="suggestion-btn" data-query="Best area for a coffee shop?">
+                ☕ Best area for a coffee shop?
+            </button>
+            <button class="suggestion-btn" data-query="Where should I open a boutique?">
+                👗 Where should I open a boutique?
+            </button>
+        </div>
+
+        <div class="chatbot-input-container">
+            <input
+                type="text"
+                class="chatbot-input"
+                id="chatbot-input"
+                placeholder="Ask about opening a business in Atlanta..."
+            >
+            <button class="chatbot-send" id="chatbot-send">
+                ➤
+            </button>
+        </div>
+    </div>
+
+    <!-- App Logic -->
+    <script src="app.js"></script>
+    <script src="chatbot.js"></script>
+</body>
+</html>

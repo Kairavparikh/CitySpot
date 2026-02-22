@@ -1,0 +1,80 @@
+# ParkSight Configuration
+
+# Paths
+paths:
+  data_dir: "data"
+  naip_tiles: "data/naip_tiles"
+  processed: "data/processed"
+  metadata: "data/metadata.csv"
+  models_dir: "models"
+  checkpoints: "models/checkpoints"
+  final_model: "models/final_model.pth"
+  outputs_dir: "outputs"
+  predictions: "outputs/predictions"
+  geojson: "outputs/parking_lots.geojson"
+  roi: "config/atlanta_roi.geojson"
+
+# Training Configuration
+training:
+  batch_size: 8  # Reduced for Mac
+  epochs: 5  # Good balance: better accuracy without too much time
+  learning_rate: 0.0003
+  early_stopping_patience: 5
+  num_workers: 2  # Reduced for Mac
+  device: "cpu"  # Mac doesn't have CUDA
+
+# Model Configuration
+model:
+  architecture: "DeepLabV3Plus"
+  encoder: "resnet34"
+  encoder_weights: "imagenet"
+  in_channels: 4  # RGB + NIR
+  classes: 1  # Binary segmentation
+  activation: "sigmoid"
+
+# Data Configuration
+data:
+  image_size: 512
+  use_nir: true
+  train_split: 0.9
+  augmentation:
+    horizontal_flip: 0.5
+    vertical_flip: 0.5
+    rotation_limit: 15
+
+# Inference Configuration
+inference:
+  batch_size: 8
+  threshold: 0.5
+  tta: false  # Test-time augmentation
+
+# Postprocessing Configuration
+postprocessing:
+  min_area_pixels: 20  # ~20 m² at 1m resolution
+  fill_holes_pixels: 10
+  morphology_kernel_size: 3
+
+# Vectorization Configuration
+vectorization:
+  simplify_tolerance: 0.5  # meters
+  spot_area_m2: 30  # Accounts for spot + aisles + landscaping (realistic estimate)
+  size_categories:
+    small: 50  # < 50 spots
+    medium: 200  # 50-200 spots
+    # large: > 200 spots
+
+# GEE Configuration
+gee:
+  collection: "USDA/NAIP/DOQQ"
+  bands: ["R", "G", "B", "N"]
+  resolution: 1  # meters per pixel
+  years: [2019, 2020, 2021]
+  tile_size_m: 512  # meters per tile
+  max_cloud_cover: 5  # percentage
+
+# Atlanta ROI
+atlanta:
+  # Scoped to Midtown, Buckhead, Airport corridor
+  center_lat: 33.7490
+  center_lon: -84.3880
+  buffer_km: 10  # ~50 km² area

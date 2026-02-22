@@ -1,0 +1,24 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Atlanta ROI - Midtown/Buckhead/Airport",
+        "description": "Scoped region of interest for ParkSight hackathon"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-84.45, 33.65],
+            [-84.32, 33.65],
+            [-84.32, 33.85],
+            [-84.45, 33.85],
+            [-84.45, 33.65]
+          ]
+        ]
+      }
+    }
+  ]
+}

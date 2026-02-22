@@ -1,0 +1,15 @@
+ File "/Users/kairavparikh/Hackalytics/venv/lib/python3.14/site-packages/cortex/async_client.py", line 214, in create_collection
+    response = await stub.CreateCollection(request, timeout=self._timeout)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kairavparikh/Hackalytics/venv/lib/python3.14/site-packages/grpc/aio/_interceptor.py", line 474, in __await__
+    response = yield from call.__await__()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/kairavparikh/Hackalytics/venv/lib/python3.14/site-packages/grpc/aio/_call.py", line 327, in __await__
+    raise _create_rpc_error(
+    ...<2 lines>...
+    )
+grpc.aio._call.AioRpcError: <AioRpcError of RPC that terminated with:
+	status = StatusCode.UNAVAILABLE
+	details = "failed to connect to all addresses; last error: UNKNOWN: ipv4:127.0.0.1:50051: Failed to connect to remote host: connect: Connection refused (61)"
+	debug_error_string = "UNKNOWN:Error received from peer  {grpc_status:14, grpc_message:"failed to connect to all addresses; last error: UNKNOWN: ipv4:127.0.0.1:50051: Failed to connect to remote host: connect: Connection refused (61)"}"
+>
